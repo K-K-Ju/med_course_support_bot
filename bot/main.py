@@ -9,7 +9,7 @@ from bot.static import AdminKeyboardMarkup, MenuOptions
 from bot.custom_filters import first_is_emoji, is_admin
 
 app = Client("Med school support Bot")
-bot.config.init_config('C:\\Users\\tusen\\Developing\\Python\\med_course_messaging_bot\\config.json')
+bot.config.init_config('your/path')
 msg_db = MessageDb()
 admins_db = AdminDb()
 
