@@ -1,7 +1,7 @@
 from pyrogram.enums import ParseMode
 from pyromod import Client
 from pyrogram import filters
-from pyrogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
+from pyrogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardRemove
 import messages
 import bot.config
 from bot.db import MessageDb, AdminDb
@@ -24,7 +24,7 @@ async def enter_admin_panel(c: Client, msg: Message):
     if not admins_db.exists(msg.chat.id):
         name = (await c.ask(msg.chat.id, 'Enter your name')).text
         admins_db.add(AdminDTO(msg.chat.id, msg.from_user.username, name))
-
+    admins_db.set_active(msg.chat.id, 1)
     await msg.reply('Welcome admin!', reply_markup=AdminKeyboardMarkup)
 
 
@@ -41,7 +41,7 @@ async def admin_keyboard_action(c: Client, msg: Message):
         pass
     elif msg.text == MenuOptions.EXIT:
         admins_db.set_active(msg.chat.id, 0)
-        await app.send_message(msg.chat.id, 'You exited admin panel', reply_markup=None)
+        await app.send_message(msg.chat.id, 'You exited admin panel', reply_markup=ReplyKeyboardRemove())
 
 
 @app.on_callback_query(is_admin(admins_db))
@@ -71,7 +71,7 @@ async def on_message(c: Client, msg: Message):
 
 @app.on_message(filters.private & filters.command('start'))
 async def on_start(c: Client, msg: Message):
-    await msg.reply(messages.START_MESSAGE)
+    await msg.reply(messages.START_MESSAGE, reply_markup=ReplyKeyboardRemove())
 
 
 app.run()
