@@ -43,6 +43,7 @@ class MessageDb:
 
     def del_by_user_id(self, tg_id: str):
         self.con.execute('DELETE FROM messages WHERE tg_id=?;', tg_id)
+        self.con.commit()
 
     @staticmethod
     def from_cursor(row) -> MessageDTO:
@@ -56,10 +57,11 @@ class AdminDb:
 
     def prepare_db(self):
         self.con.execute('''CREATE TABLE IF NOT EXISTS admins(
-                                tg_id LONG INTEGER,
-                                username TEXT,
+                                tg_id LONG INTEGER UNIQUE,
+                                username TEXT UNIQUE,
                                 name TEXT, 
-                                active BOOLEAN DEFAULT 1
+                                active BOOLEAN DEFAULT 1,
+                                active_chat LONG INTEGER DEFAULT 0
                                 );''')
 
     def add(self, admin_dto: AdminDTO):
@@ -69,6 +71,20 @@ class AdminDb:
 
     def set_active(self, tg_id, is_active: int):
         self.con.execute('UPDATE admins SET active=? WHERE tg_id=?;', (is_active, tg_id))
+        self.con.commit()
+
+    def set_active_chat(self, admin_tg_id, customer_tg_id):
+        self.con.execute('UPDATE admins SET active_chat=? WHERE tg_id=?;', (customer_tg_id, admin_tg_id))
+        self.con.commit()
+
+    def get_admin_by_active_chat(self, chat_id):
+        c = self.con.execute(f'SELECT tg_id FROM admins WHERE active_chat={chat_id};')
+        res = c.fetchone()
+        if res:
+            admin_tg_id = res[0]
+            return admin_tg_id
+        else:
+            return 0
 
     def exists(self, tg_id):
         c = self.con.execute(f'SELECT COUNT(tg_id) AS count FROM admins WHERE tg_id={tg_id};')
